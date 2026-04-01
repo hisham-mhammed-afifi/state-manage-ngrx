@@ -4,7 +4,7 @@
   "sourceRoot": "libs/feature/cart/state/src",
   "prefix": "org",
   "projectType": "library",
-  "tags": ["type:state-feature", "scope:cart"],
+  "tags": ["type:state-feature", "scope:shared"],
   "targets": {
     "lint": {
       "executor": "@nx/eslint:lint"

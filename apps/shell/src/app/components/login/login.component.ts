@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthStore } from '@org/state-core';
@@ -33,11 +33,11 @@ import { AuthStore } from '@org/state-core';
           <label for="password">Password</label>
           <input id="password" [(ngModel)]="password" name="password" type="password" placeholder="Enter password" />
         </div>
-        <button type="submit" [disabled]="authStore.loading()">
-          {{ authStore.loading() ? 'Signing in...' : 'Sign In' }}
+        <button type="submit" [disabled]="loading()">
+          {{ loading() ? 'Signing in...' : 'Sign In' }}
         </button>
-        @if (authStore.error()) {
-          <p class="error">{{ authStore.error() }}</p>
+        @if (error()) {
+          <p class="error">{{ error() }}</p>
         }
       </form>
       <p class="hint">Try: emilys / emilyspass</p>
@@ -47,6 +47,9 @@ import { AuthStore } from '@org/state-core';
 export class LoginComponent {
   readonly authStore = inject(AuthStore);
   private readonly router = inject(Router);
+
+  readonly loading = computed(() => this.authStore.loading());
+  readonly error = computed(() => this.authStore.error());
 
   username = 'emilys';
   password = 'emilyspass';

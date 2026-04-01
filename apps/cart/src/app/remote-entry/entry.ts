@@ -1,6 +1,8 @@
 import { Component, inject, computed } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { CartStore, CartItem } from '@org/feature-cart-state';
+import { cartEvents } from '@org/state-core';
+import { injectDispatch } from '@ngrx/signals/events';
 
 @Component({
   selector: 'cart-cart-entry',
@@ -68,15 +70,15 @@ import { CartStore, CartItem } from '@org/feature-cart-state';
           <h3>Order Summary</h3>
           <div class="summary-row">
             <span>Items ({{ totalItems() }})</span>
-            <span>{{ cartTotal() | currency }}</span>
+            <span>{{ totalPrice() | currency }}</span>
           </div>
           <div class="summary-row savings">
             <span>Discount</span>
-            <span>-{{ (cartTotal() - cartDiscountedTotal()) | currency }}</span>
+            <span>-{{ (totalPrice() - totalDiscountedPrice()) | currency }}</span>
           </div>
           <div class="summary-row total">
             <span>Total</span>
-            <span>{{ cartDiscountedTotal() | currency }}</span>
+            <span>{{ totalDiscountedPrice() | currency }}</span>
           </div>
           <button class="btn-clear" (click)="clearCart()">Clear Cart</button>
         </div>
@@ -86,19 +88,20 @@ import { CartStore, CartItem } from '@org/feature-cart-state';
 })
 export class RemoteEntry {
   private readonly store = inject(CartStore);
+  private readonly dispatch = injectDispatch(cartEvents);
 
   readonly items = computed(() => this.store.entities() as CartItem[]);
   readonly totalItems = computed(() => this.store.totalItems() as number);
-  readonly cartTotal = computed(() => this.store.cartTotal() as number);
-  readonly cartDiscountedTotal = computed(() => this.store.cartDiscountedTotal() as number);
+  readonly totalPrice = computed(() => this.store.totalPrice() as number);
+  readonly totalDiscountedPrice = computed(() => this.store.totalDiscountedPrice() as number);
   readonly loading = computed(() => (this.store as any).loading() as boolean);
   readonly error = computed(() => (this.store as any).error() as string | null);
 
   removeItem(id: number) {
-    this.store.removeItem(id);
+    this.dispatch.removeFromCart({ id });
   }
 
   clearCart() {
-    this.store.clearCart();
+    this.dispatch.clearCart();
   }
 }

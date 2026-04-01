@@ -1,5 +1,7 @@
 import { Component, inject, computed } from '@angular/core';
 import { ProductsStore, Product } from '@org/feature-products-state';
+import { cartEvents, CartProduct } from '@org/state-core';
+import { injectDispatch } from '@ngrx/signals/events';
 import { CurrencyPipe } from '@angular/common';
 
 @Component({
@@ -33,6 +35,9 @@ import { CurrencyPipe } from '@angular/common';
     .stock { font-size: .875rem; }
     .stock.low { color: #dc2626; }
     .stock.ok { color: #16a34a; }
+    .btn-cart { display: inline-flex; align-items: center; gap: .375rem; margin-top: .5rem; padding: .375rem .75rem; background: #4f46e5; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: .8rem; font-weight: 600; }
+    .btn-cart:hover { background: #4338ca; }
+    .btn-cart-detail { width: 100%; margin-top: 1rem; padding: .625rem; font-size: .9rem; }
   `],
   template: `
     <div class="toolbar">
@@ -64,6 +69,7 @@ import { CurrencyPipe } from '@angular/common';
                 {{ product.rating.toFixed(1) }}
                 · <span class="badge">{{ product.category }}</span>
               </div>
+              <button class="btn-cart" (click)="addToCart(product, $event)">&#128722; Add to Cart</button>
             </div>
           </div>
         }
@@ -87,12 +93,14 @@ import { CurrencyPipe } from '@angular/common';
         <p class="stock" [class.low]="product.stock < 10" [class.ok]="product.stock >= 10">
           Stock: {{ product.stock }}
         </p>
+        <button class="btn-cart btn-cart-detail" (click)="addToCart(product, $event)">&#128722; Add to Cart</button>
       </div>
     }
   `,
 })
 export class RemoteEntry {
   readonly store = inject(ProductsStore);
+  private readonly dispatch = injectDispatch(cartEvents);
 
   readonly products = computed(() => this.store.entities() as Product[]);
   readonly selectedProduct = computed(() => this.store.selectedProduct() as Product | null);
@@ -109,6 +117,17 @@ export class RemoteEntry {
 
   loadByCategory(category: string) {
     this.store.loadByCategory(category);
+  }
+
+  addToCart(product: Product, event: Event) {
+    event.stopPropagation();
+    this.dispatch.addToCart({
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      thumbnail: product.thumbnail,
+      discountPercentage: product.discountPercentage,
+    });
   }
 
   getStars(rating: number): string {
