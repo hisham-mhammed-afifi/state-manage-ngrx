@@ -1,0 +1,13 @@
+{
+  "name": "state-core",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/state/core/src",
+  "prefix": "org",
+  "projectType": "library",
+  "tags": ["type:state-core", "scope:shared"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

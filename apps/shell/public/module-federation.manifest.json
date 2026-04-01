@@ -1,0 +1,5 @@
+{
+  "orders": "http://localhost:4201/mf-manifest.json",
+  "productsMf": "http://localhost:4202/mf-manifest.json",
+  "cart": "http://localhost:4203/mf-manifest.json"
+}

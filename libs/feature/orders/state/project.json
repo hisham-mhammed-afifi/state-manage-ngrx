@@ -1,0 +1,13 @@
+{
+  "name": "feature-orders-state",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/feature/orders/state/src",
+  "prefix": "org",
+  "projectType": "library",
+  "tags": ["type:state-feature", "scope:orders"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

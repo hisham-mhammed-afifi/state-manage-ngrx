@@ -1,0 +1,13 @@
+{
+  "name": "feature-products-state",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/feature/products/state/src",
+  "prefix": "org",
+  "projectType": "library",
+  "tags": ["type:state-feature", "scope:products"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}
