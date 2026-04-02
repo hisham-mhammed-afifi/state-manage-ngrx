@@ -1,0 +1,175 @@
+# Deployment Guide — Vercel + Module Federation
+
+## Architecture Overview
+
+This workspace deploys as **4 separate Vercel projects** from one monorepo:
+
+| Vercel Project    | Nx App       | Role               | URL                                  |
+| ----------------- | ------------ | ------------------ | ------------------------------------ |
+| `shell-host`      | `shell`      | Host (entry point) | https://shell-host.vercel.app        |
+| `cart-remote`     | `cart`       | Remote             | https://cart-remote-brown.vercel.app |
+| `orders-remote`   | `orders`     | Remote             | https://orders-remote.vercel.app     |
+| `products-remote` | `productsMf` | Remote             | https://products-remote.vercel.app   |
+
+The shell loads remotes dynamically at runtime via `module-federation.manifest.json`.
+
+---
+
+## Prerequisites
+
+- Node.js and npm installed
+- Vercel CLI installed and authenticated (`vercel login`)
+- Nx workspace dependencies installed (`npm install`)
+
+---
+
+## Deploy After Code Changes
+
+Run these commands from the workspace root:
+
+### Step 1: Build all apps
+
+```bash
+npx nx run-many --target=build --projects=cart,orders,productsMf,shell --configuration=production --skip-nx-cache
+```
+
+### Step 2: Patch Federation Runtime
+
+Nx leaves `requiredVersion:"auto"` unresolved in the bundles, which causes runtime errors. Run the post-build patch:
+
+```bash
+node tools/patch-auto-versions.mjs dist/apps/shell dist/apps/cart dist/apps/orders dist/apps/productsMf
+```
+
+### Step 3: Generate the production manifest
+
+This writes `module-federation.manifest.json` into the shell build output with the production remote URLs:
+
+```bash
+CART_REMOTE_URL=https://cart-remote-brown.vercel.app \
+ORDERS_REMOTE_URL=https://orders-remote.vercel.app \
+PRODUCTS_REMOTE_URL=https://products-remote.vercel.app \
+node tools/generate-manifest.mjs
+```
+
+### Step 4: Link dist folders (first time only)
+
+If this is a fresh clone or `dist` was deleted:
+
+```bash
+vercel link --project cart-remote --cwd dist/apps/cart --yes
+vercel link --project orders-remote --cwd dist/apps/orders --yes
+vercel link --project products-remote --cwd dist/apps/productsMf --yes
+vercel link --project shell-host --cwd dist/apps/shell --yes
+```
+
+### Step 5: Deploy remotes first, then shell
+
+```bash
+# Deploy remotes (can run in parallel)
+vercel deploy dist/apps/cart --yes --prod
+vercel deploy dist/apps/orders --yes --prod
+vercel deploy dist/apps/productsMf --yes --prod
+
+# Deploy shell last
+vercel deploy dist/apps/shell --yes --prod
+```
+
+---
+
+## Quick Reference — Full Deploy (copy/paste)
+
+```bash
+# Build
+npx nx run-many --target=build --projects=cart,orders,productsMf,shell --configuration=production --skip-nx-cache
+
+# Patch + manifest
+node tools/patch-auto-versions.mjs dist/apps/shell dist/apps/cart dist/apps/orders dist/apps/productsMf
+CART_REMOTE_URL=https://cart-remote-brown.vercel.app ORDERS_REMOTE_URL=https://orders-remote.vercel.app PRODUCTS_REMOTE_URL=https://products-remote.vercel.app node tools/generate-manifest.mjs
+
+# Link (first time only)
+vercel link --project cart-remote --cwd dist/apps/cart --yes
+vercel link --project orders-remote --cwd dist/apps/orders --yes
+vercel link --project products-remote --cwd dist/apps/productsMf --yes
+vercel link --project shell-host --cwd dist/apps/shell --yes
+
+# Deploy
+vercel deploy dist/apps/cart --yes --prod
+vercel deploy dist/apps/orders --yes --prod
+vercel deploy dist/apps/productsMf --yes --prod
+vercel deploy dist/apps/shell --yes --prod
+```
+
+---
+
+## Partial Deploys
+
+If you only changed code in **one remote** (e.g., cart):
+
+```bash
+npx nx build cart --configuration=production --skip-nx-cache
+node tools/patch-auto-versions.mjs dist/apps/cart
+vercel link --project cart-remote --cwd dist/apps/cart --yes
+vercel deploy dist/apps/cart --yes --prod
+```
+
+If you only changed the **shell** (no remote changes):
+
+```bash
+npx nx build shell --configuration=production --skip-nx-cache
+node tools/patch-auto-versions.mjs dist/apps/shell
+CART_REMOTE_URL=https://cart-remote-brown.vercel.app ORDERS_REMOTE_URL=https://orders-remote.vercel.app PRODUCTS_REMOTE_URL=https://products-remote.vercel.app node tools/generate-manifest.mjs
+vercel link --project shell-host --cwd dist/apps/shell --yes
+vercel deploy dist/apps/shell --yes --prod
+```
+
+If you changed a **shared library** (e.g., `libs/state/core`), rebuild and redeploy **all apps** — the shared code is bundled into each app.
+
+---
+
+## How It Works
+
+### Dynamic Remote Loading
+
+The shell fetches `/module-federation.manifest.json` at startup to discover remote URLs:
+
+```
+apps/shell/src/main.ts
+  → fetch('/module-federation.manifest.json')
+  → registerRemotes(remotes)
+  → import('./bootstrap')
+```
+
+- **Local dev:** Uses `apps/shell/public/module-federation.manifest.json` with `localhost` URLs (unchanged)
+- **Production:** Uses the file generated by `tools/generate-manifest.mjs` with Vercel URLs
+
+### Post-Build Patch
+
+`tools/patch-auto-versions.mjs` replaces `requiredVersion:"auto",strictVersion:!0` with `requiredVersion:false,strictVersion:!1` in the built JS files. This is needed because:
+
+- Nx's `withModuleFederation` sets `requiredVersion: 'auto'` expecting it to be resolved at build time
+- The `@module-federation/enhanced` runtime serializes the literal string `"auto"` into the bundle
+- The Federation Runtime then rejects shared modules because `"auto"` is not a valid semver range
+
+Setting `requiredVersion: false` tells the runtime to accept whatever version is loaded, which is safe because `singleton: true` guarantees only one copy exists.
+
+### CORS
+
+`vercel.json` at the workspace root adds `Access-Control-Allow-Origin: *` headers. This is required because the shell (e.g., `shell-host.vercel.app`) loads JS bundles from remote origins (e.g., `cart-remote-brown.vercel.app`).
+
+### Singleton Sharing
+
+`tools/mf-shared.ts` defines which packages must be singletons across all apps. All apps use the same `createSharedConfig` function to ensure consistent sharing behavior.
+
+---
+
+## Troubleshooting
+
+| Symptom                                    | Cause                      | Fix                                                                  |
+| ------------------------------------------ | -------------------------- | -------------------------------------------------------------------- |
+| `requiredVersion:"auto"` errors in console | Forgot to run patch script | Run `node tools/patch-auto-versions.mjs` on all dist dirs            |
+| Remote fails to load (CORS error)          | Missing CORS headers       | Ensure `vercel.json` is in the workspace root                        |
+| Remote fails to load (404)                 | Wrong manifest URLs        | Check env vars passed to `generate-manifest.mjs`                     |
+| Auth works in shell but not in remote      | Missing singleton config   | Ensure the package is in `SHARED_SINGLETONS` in `tools/mf-shared.ts` |
+| Stale content after deploy                 | Browser cache              | Hard refresh (Ctrl+Shift+R) or clear cache                           |
+| `dist` folder missing `.vercel` link       | Fresh build wiped it       | Re-run `vercel link` commands                                        |
