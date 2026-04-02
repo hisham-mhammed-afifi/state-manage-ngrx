@@ -24,9 +24,9 @@ import { CommonModule } from '@angular/common';
       justify-content: center;
       padding: 48px;
       text-align: center;
-      background: #fff;
-      border-radius: 8px;
-      border: 1px solid #e0e0e0;
+      background: var(--color-surface, #fff);
+      border-radius: var(--radius-lg, 8px);
+      border: 1px solid var(--color-border, #e5e7eb);
     }
 
     .error-icon {
@@ -37,29 +37,30 @@ import { CommonModule } from '@angular/common';
     h3 {
       margin: 0 0 8px 0;
       font-size: 1.5rem;
-      color: #333;
+      color: var(--color-gray-900, #111827);
     }
 
     p {
       margin: 0 0 24px 0;
-      color: #666;
+      color: var(--color-gray-500, #6b7280);
       font-size: 1rem;
       max-width: 400px;
     }
 
     .retry-button {
-      background: #3498db;
+      background: var(--color-primary, #4f46e5);
       color: white;
       border: none;
       padding: 12px 24px;
-      border-radius: 4px;
+      border-radius: var(--radius-md, 6px);
       font-size: 1rem;
       cursor: pointer;
-      transition: background 0.3s ease;
+      font-family: inherit;
+      transition: background var(--transition-fast, 150ms ease);
     }
 
     .retry-button:hover {
-      background: #2980b9;
+      background: var(--color-primary-hover, #4338ca);
     }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,

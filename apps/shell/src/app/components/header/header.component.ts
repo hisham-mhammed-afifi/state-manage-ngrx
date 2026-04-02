@@ -9,25 +9,71 @@ import { CartStore } from '@org/feature-cart-state';
   imports: [RouterModule],
   styles: [`
     :host { display: block; }
-    header { display: flex; align-items: center; justify-content: space-between; padding: .75rem 1.5rem; background: #1e1b4b; color: #fff; }
-    nav { display: flex; gap: 1rem; align-items: center; }
-    nav a { color: #c7d2fe; text-decoration: none; padding: .5rem .75rem; border-radius: 6px; font-weight: 500; }
-    nav a:hover, nav a.active { color: #fff; background: rgba(255,255,255,.1); }
-    .user-section { display: flex; align-items: center; gap: .75rem; }
-    .avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
-    .user-name { font-weight: 500; font-size: .875rem; }
-    .btn-logout { background: rgba(255,255,255,.15); border: none; color: #fff; padding: .375rem .75rem; border-radius: 6px; cursor: pointer; font-size: .8rem; }
-    .btn-logout:hover { background: rgba(255,255,255,.25); }
-    .btn-login { color: #c7d2fe; text-decoration: none; }
-    .cart-link { position: relative; display: inline-flex; align-items: center; color: #c7d2fe; text-decoration: none; padding: .5rem .75rem; border-radius: 6px; font-weight: 500; }
-    .cart-link:hover { color: #fff; background: rgba(255,255,255,.1); }
-    .cart-badge { position: absolute; top: 0; right: 0; background: #ef4444; color: #fff; font-size: .65rem; font-weight: 700; min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 4px; transform: translate(25%, -25%); }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.75rem 1.5rem; background: var(--color-navy); color: #fff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      position: sticky; top: 0; z-index: 50;
+    }
+    nav { display: flex; gap: 0.25rem; align-items: center; }
+    nav a {
+      color: #c7d2fe; text-decoration: none; padding: 0.5rem 0.75rem;
+      border-radius: var(--radius-md); font-weight: 500; font-size: var(--font-size-sm);
+      transition: color var(--transition-fast), background var(--transition-fast);
+    }
+    nav a:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+    nav a.active { color: #fff; background: rgba(255, 255, 255, 0.15); }
+    .user-section { display: flex; align-items: center; gap: 0.75rem; }
+    .avatar {
+      width: 32px; height: 32px; border-radius: var(--radius-full);
+      object-fit: cover; border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+    .user-name { font-weight: 500; font-size: var(--font-size-sm); }
+    .btn-logout {
+      background: rgba(255, 255, 255, 0.15); border: none; color: #fff;
+      padding: 0.375rem 0.75rem; border-radius: var(--radius-md);
+      cursor: pointer; font-size: 0.8rem; font-family: inherit;
+      transition: background var(--transition-fast);
+    }
+    .btn-logout:hover { background: rgba(255, 255, 255, 0.25); }
+    .btn-login {
+      color: #c7d2fe; text-decoration: none; padding: 0.5rem 0.75rem;
+      border-radius: var(--radius-md);
+      transition: color var(--transition-fast), background var(--transition-fast);
+    }
+    .btn-login:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+    .cart-link {
+      position: relative; display: inline-flex; align-items: center;
+      color: #c7d2fe; text-decoration: none; padding: 0.5rem 0.75rem;
+      border-radius: var(--radius-md); font-weight: 500;
+      transition: color var(--transition-fast), background var(--transition-fast);
+    }
+    .cart-link:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+    .cart-badge {
+      position: absolute; top: 0; right: 0;
+      background: #ef4444; color: #fff; font-size: 0.65rem; font-weight: 700;
+      min-width: 18px; height: 18px; border-radius: var(--radius-full);
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 4px; transform: translate(25%, -25%);
+      animation: badge-pop 200ms ease;
+    }
+    @keyframes badge-pop {
+      0% { transform: translate(25%, -25%) scale(0); }
+      70% { transform: translate(25%, -25%) scale(1.2); }
+      100% { transform: translate(25%, -25%) scale(1); }
+    }
+    @media (max-width: 640px) {
+      header { flex-wrap: wrap; gap: 0.5rem; padding: 0.75rem 1rem; }
+      nav { order: 2; width: 100%; overflow-x: auto; gap: 0.25rem; }
+      .user-section { order: 1; }
+    }
   `],
   template: `
     <header>
       <nav>
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
         <a routerLink="/productsMf" routerLinkActive="active">Products</a>
+        <a routerLink="/guide" routerLinkActive="active">Guide</a>
         @if (isAuthenticated()) {
           <a routerLink="/orders" routerLinkActive="active">Orders</a>
         }

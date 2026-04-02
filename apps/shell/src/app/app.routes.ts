@@ -33,6 +33,18 @@ export const appRoutes: Route[] = [
       ),
   },
   {
+    path: 'guide',
+    redirectTo: 'guide/01',
+    pathMatch: 'full',
+  },
+  {
+    path: 'guide/:chapter',
+    loadComponent: () =>
+      import('./components/guide/guide.component').then(
+        (m) => m.GuideComponent
+      ),
+  },
+  {
     path: '',
     component: HomeComponent,
   },

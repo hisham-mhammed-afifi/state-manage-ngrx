@@ -1,0 +1,26 @@
+{
+  "bundler": {
+    "name": "webpack"
+  },
+  "mfConfig": {
+    "name": "orders",
+    "exposes": {
+      "./Routes": "apps/orders/src/app/remote-entry/entry.routes.ts"
+    }
+  },
+  "latestErrorEvent": {
+    "code": "BUILD-001",
+    "message": "Failed to find expose module. #BUILD-001\nargs: {\"exposeModules\":[{\"name\":\"./Routes\",\"module\":null,\"request\":\"apps/orders/src/app/remote-entry/entry.routes.ts\"}],\"FEDERATION_WEBPACK_PATH\":\"D:\\\\POCs\\\\state-manage\\\\node_modules\\\\webpack\\\\lib\\\\index.js\"}\nView the docs to see how to solve: https://module-federation.io/guide/troubleshooting/build#build-001",
+    "args": {
+      "exposeModules": [
+        {
+          "name": "./Routes",
+          "module": null,
+          "request": "apps/orders/src/app/remote-entry/entry.routes.ts"
+        }
+      ],
+      "FEDERATION_WEBPACK_PATH": "D:\\POCs\\state-manage\\node_modules\\webpack\\lib\\index.js"
+    },
+    "timestamp": 1775098490189
+  }
+}

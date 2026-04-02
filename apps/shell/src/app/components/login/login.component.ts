@@ -8,18 +8,40 @@ import { AuthStore } from '@org/state-core';
   standalone: true,
   imports: [FormsModule],
   styles: [`
-    :host { display: flex; justify-content: center; align-items: center; min-height: 80vh; }
-    .login-card { background: #fff; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 24px rgba(0,0,0,.1); width: 360px; }
-    h2 { margin: 0 0 1.5rem; text-align: center; color: #333; }
+    :host {
+      display: flex; justify-content: center; align-items: center; min-height: 80vh;
+      background-image: radial-gradient(circle at 1px 1px, var(--color-gray-200) 1px, transparent 0);
+      background-size: 24px 24px;
+    }
+    .login-card {
+      background: var(--color-surface); border-radius: var(--radius-xl);
+      padding: 2rem; box-shadow: var(--shadow-lg); width: 360px;
+      animation: fade-slide-up 400ms ease;
+    }
+    @keyframes fade-slide-up {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    h2 { margin: 0 0 1.5rem; text-align: center; color: var(--color-gray-900); }
     .form-group { margin-bottom: 1rem; }
-    label { display: block; margin-bottom: .25rem; font-weight: 600; color: #555; font-size: .875rem; }
-    input { width: 100%; padding: .625rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; box-sizing: border-box; }
-    input:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79,70,229,.15); }
-    button { width: 100%; padding: .75rem; background: #4f46e5; color: #fff; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; font-weight: 600; }
-    button:hover { background: #4338ca; }
-    button:disabled { background: #9ca3af; cursor: not-allowed; }
-    .error { color: #dc2626; font-size: .875rem; margin-top: .5rem; text-align: center; }
-    .hint { color: #9ca3af; font-size: .75rem; text-align: center; margin-top: 1rem; }
+    label { display: block; margin-bottom: 0.25rem; font-weight: 600; color: var(--color-gray-700); font-size: var(--font-size-sm); }
+    input {
+      width: 100%; padding: 0.625rem; border: 1px solid var(--color-gray-300);
+      border-radius: var(--radius-md); font-size: var(--font-size-base);
+      box-sizing: border-box; font-family: inherit;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    }
+    input:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15); }
+    button {
+      width: 100%; padding: 0.75rem; background: var(--color-primary); color: #fff;
+      border: none; border-radius: var(--radius-md); font-size: var(--font-size-base);
+      cursor: pointer; font-weight: 600; font-family: inherit;
+      transition: background var(--transition-fast);
+    }
+    button:hover { background: var(--color-primary-hover); }
+    button:disabled { background: var(--color-gray-400); cursor: not-allowed; }
+    .error { color: var(--color-error); font-size: var(--font-size-sm); margin-top: 0.5rem; text-align: center; }
+    .hint { color: var(--color-gray-400); font-size: var(--font-size-xs); text-align: center; margin-top: 1rem; }
   `],
   template: `
     <div class="login-card">

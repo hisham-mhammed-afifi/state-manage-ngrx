@@ -8,38 +8,85 @@ import { OrdersStore, Order } from '@org/feature-orders-state';
   imports: [CurrencyPipe],
   styles: [`
     :host { display: block; }
-    h2 { margin: 0 0 1rem; color: #1e1b4b; }
-    .loading { text-align: center; padding: 2rem; color: #6b7280; }
-    .error { text-align: center; padding: 2rem; color: #dc2626; }
-    .empty { text-align: center; padding: 2rem; color: #9ca3af; }
-    .orders-list { display: flex; flex-direction: column; gap: .75rem; }
-    .order-card { border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; overflow: hidden; cursor: pointer; transition: box-shadow .2s; }
-    .order-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.08); }
-    .order-card.selected { border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79,70,229,.15); }
-    .order-header { display: flex; justify-content: space-between; align-items: center; padding: .75rem 1rem; background: #f9fafb; }
-    .order-id { font-weight: 600; color: #374151; }
-    .order-total { font-weight: 700; color: #4f46e5; }
-    .order-meta { font-size: .8rem; color: #6b7280; }
-    .order-products { padding: .75rem 1rem; border-top: 1px solid #e5e7eb; }
-    .product-row { display: flex; align-items: center; gap: .75rem; padding: .375rem 0; border-bottom: 1px solid #f3f4f6; }
+    h2 { margin: 0 0 1rem; color: var(--color-navy, #1e1b4b); }
+    .state-loading {
+      display: flex; flex-direction: column; align-items: center;
+      gap: var(--space-3, 0.75rem); padding: 3rem; color: var(--color-gray-500, #6b7280);
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--color-gray-200, #e5e7eb);
+      border-top-color: var(--color-primary, #4f46e5);
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .state-error {
+      display: flex; flex-direction: column; align-items: center;
+      gap: var(--space-2, 0.5rem); padding: 3rem; color: var(--color-error, #dc2626);
+    }
+    .state-error-icon { font-size: 2rem; }
+    .empty {
+      text-align: center; padding: 3rem; color: var(--color-gray-400, #9ca3af);
+    }
+    .empty-icon { font-size: 3rem; margin-bottom: 0.75rem; display: block; }
+    .orders-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .order-card {
+      border: 1px solid var(--color-border, #e5e7eb); border-radius: var(--radius-lg, 8px);
+      background: var(--color-surface, #fff); overflow: hidden; cursor: pointer;
+      transition: box-shadow var(--transition-base, 200ms ease), border-color var(--transition-base, 200ms ease);
+    }
+    .order-card:hover { box-shadow: var(--shadow-sm, 0 2px 8px rgba(0,0,0,.08)); }
+    .order-card:focus-visible { outline: 2px solid var(--color-primary, #4f46e5); outline-offset: 2px; }
+    .order-card.selected { border-color: var(--color-primary, #4f46e5); box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.15); }
+    .order-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.75rem 1rem; background: var(--color-gray-50, #f9fafb);
+    }
+    .order-id { font-weight: 600; color: var(--color-gray-700, #374151); }
+    .order-total { font-weight: 700; color: var(--color-primary, #4f46e5); }
+    .order-meta { font-size: 0.8rem; color: var(--color-gray-500, #6b7280); }
+    .order-details {
+      display: grid; grid-template-rows: 0fr;
+      transition: grid-template-rows var(--transition-slow, 300ms ease);
+    }
+    .order-details.expanded { grid-template-rows: 1fr; }
+    .order-details-inner { overflow: hidden; }
+    .order-products { padding: 0.75rem 1rem; border-top: 1px solid var(--color-border, #e5e7eb); }
+    .product-row {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.375rem 0; border-bottom: 1px solid var(--color-gray-100, #f3f4f6);
+    }
     .product-row:last-child { border-bottom: none; }
-    .product-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; }
+    .product-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: var(--radius-sm, 4px); }
     .product-info { flex: 1; }
-    .product-title { font-size: .875rem; font-weight: 500; }
-    .product-qty { font-size: .75rem; color: #6b7280; }
-    .product-price { font-weight: 600; font-size: .875rem; }
-    .order-summary { display: flex; justify-content: space-between; padding: .75rem 1rem; background: #f0fdf4; font-size: .875rem; }
-    .discount { color: #16a34a; font-weight: 600; }
+    .product-title { font-size: var(--font-size-sm, 0.875rem); font-weight: 500; }
+    .product-qty { font-size: var(--font-size-xs, 0.75rem); color: var(--color-gray-500, #6b7280); }
+    .product-price { font-weight: 600; font-size: var(--font-size-sm, 0.875rem); }
+    .order-summary {
+      display: flex; justify-content: space-between;
+      padding: 0.75rem 1rem; background: var(--color-success-light, #f0fdf4);
+      font-size: var(--font-size-sm, 0.875rem);
+    }
+    .discount { color: var(--color-success, #16a34a); font-weight: 600; }
   `],
   template: `
     <h2>Order History</h2>
 
     @if (loading()) {
-      <div class="loading">Loading orders...</div>
+      <div class="state-loading">
+        <div class="spinner"></div>
+        <span>Loading orders...</span>
+      </div>
     } @else if (error()) {
-      <div class="error">{{ error() }}</div>
+      <div class="state-error">
+        <span class="state-error-icon">&#9888;</span>
+        <span>{{ error() }}</span>
+      </div>
     } @else if (orders().length === 0) {
-      <div class="empty">No orders found.</div>
+      <div class="empty">
+        <span class="empty-icon">&#128230;</span>
+        No orders found.
+      </div>
     } @else {
       <div class="orders-list">
         @for (order of orders(); track order.id) {
@@ -52,24 +99,26 @@ import { OrdersStore, Order } from '@org/feature-orders-state';
               <span class="order-total">{{ order.total | currency }}</span>
             </div>
 
-            @if (selectedId() === order.id) {
-              <div class="order-products">
-                @for (product of order.products; track product.id) {
-                  <div class="product-row">
-                    <img [src]="product.thumbnail" [alt]="product.title" class="product-thumb" />
-                    <div class="product-info">
-                      <div class="product-title">{{ product.title }}</div>
-                      <div class="product-qty">Qty: {{ product.quantity }} × {{ product.price | currency }}</div>
+            <div class="order-details" [class.expanded]="selectedId() === order.id">
+              <div class="order-details-inner">
+                <div class="order-products">
+                  @for (product of order.products; track product.id) {
+                    <div class="product-row">
+                      <img [src]="product.thumbnail" [alt]="product.title" class="product-thumb" />
+                      <div class="product-info">
+                        <div class="product-title">{{ product.title }}</div>
+                        <div class="product-qty">Qty: {{ product.quantity }} × {{ product.price | currency }}</div>
+                      </div>
+                      <span class="product-price">{{ product.total | currency }}</span>
                     </div>
-                    <span class="product-price">{{ product.total | currency }}</span>
-                  </div>
-                }
+                  }
+                </div>
+                <div class="order-summary">
+                  <span>Subtotal: {{ order.total | currency }}</span>
+                  <span class="discount">Discounted: {{ order.discountedTotal | currency }}</span>
+                </div>
               </div>
-              <div class="order-summary">
-                <span>Subtotal: {{ order.total | currency }}</span>
-                <span class="discount">Discounted: {{ order.discountedTotal | currency }}</span>
-              </div>
-            }
+            </div>
           </div>
         }
       </div>

@@ -22,10 +22,10 @@ import { CommonModule } from '@angular/common';
     .spinner {
       width: 40px;
       height: 40px;
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #3498db;
+      border: 4px solid var(--color-gray-200, #e5e7eb);
+      border-top-color: var(--color-primary, #4f46e5);
       border-radius: 50%;
-      animation: spin 1s linear infinite;
+      animation: spin 0.8s linear infinite;
     }
 
     @keyframes spin {
@@ -35,7 +35,7 @@ import { CommonModule } from '@angular/common';
 
     p {
       margin-top: 16px;
-      color: #666;
+      color: var(--color-gray-500, #6b7280);
       font-size: 1rem;
     }
   `],

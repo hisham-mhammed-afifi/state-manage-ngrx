@@ -10,34 +10,90 @@ import { CurrencyPipe } from '@angular/common';
   imports: [CurrencyPipe],
   styles: [`
     :host { display: block; }
-    .toolbar { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
-    .search-input { padding: .5rem .75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: .875rem; min-width: 200px; }
-    .categories { display: flex; gap: .5rem; flex-wrap: wrap; }
-    .cat-btn { padding: .375rem .75rem; border: 1px solid #d1d5db; border-radius: 20px; background: #fff; cursor: pointer; font-size: .75rem; }
-    .cat-btn:hover, .cat-btn.active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+    .toolbar { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
+    .search-input {
+      padding: 0.5rem 0.75rem; border: 1px solid var(--color-gray-300, #d1d5db);
+      border-radius: var(--radius-md, 6px); font-size: var(--font-size-sm, 0.875rem);
+      min-width: 200px; font-family: inherit;
+      transition: border-color var(--transition-fast, 150ms ease), box-shadow var(--transition-fast, 150ms ease);
+    }
+    .search-input:focus { outline: none; border-color: var(--color-primary, #4f46e5); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15); }
+    .categories { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .cat-btn {
+      padding: 0.375rem 0.75rem; border: 1px solid var(--color-gray-300, #d1d5db);
+      border-radius: var(--radius-full, 9999px); background: var(--color-surface, #fff);
+      cursor: pointer; font-size: var(--font-size-xs, 0.75rem); font-family: inherit;
+      transition: all var(--transition-fast, 150ms ease);
+    }
+    .cat-btn:hover { background: var(--color-primary-light, #e0e7ff); border-color: var(--color-primary, #4f46e5); color: var(--color-primary-text, #4338ca); }
+    .cat-btn.active { background: var(--color-primary, #4f46e5); color: #fff; border-color: var(--color-primary, #4f46e5); }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
-    .card { border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; cursor: pointer; transition: box-shadow .2s; background: #fff; }
-    .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+    .card {
+      border: 1px solid var(--color-border, #e5e7eb); border-radius: var(--radius-lg, 8px);
+      overflow: hidden; cursor: pointer; background: var(--color-surface, #fff);
+      transition: box-shadow var(--transition-base, 200ms ease), transform var(--transition-base, 200ms ease);
+    }
+    .card:hover { box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,.1)); transform: translateY(-2px); }
+    .card:focus-visible { outline: 2px solid var(--color-primary, #4f46e5); outline-offset: 2px; }
     .card img { width: 100%; height: 160px; object-fit: cover; }
-    .card-body { padding: .75rem; }
-    .card-title { font-weight: 600; font-size: .875rem; margin: 0 0 .25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .card-price { color: #4f46e5; font-weight: 700; font-size: 1rem; }
-    .card-meta { font-size: .75rem; color: #6b7280; margin-top: .25rem; }
-    .rating { color: #f59e0b; }
-    .loading { text-align: center; padding: 2rem; color: #6b7280; }
-    .error { text-align: center; padding: 2rem; color: #dc2626; }
-    .detail-overlay { position: fixed; top: 0; right: 0; bottom: 0; width: 420px; background: #fff; box-shadow: -4px 0 24px rgba(0,0,0,.15); z-index: 100; overflow-y: auto; padding: 1.5rem; }
-    .detail-overlay img { width: 100%; border-radius: 8px; margin-bottom: .75rem; }
-    .detail-overlay h2 { margin: 0 0 .5rem; }
-    .detail-overlay .close-btn { position: absolute; top: 1rem; right: 1rem; background: #f3f4f6; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; }
-    .badge { display: inline-block; background: #e0e7ff; color: #4338ca; padding: .125rem .5rem; border-radius: 12px; font-size: .75rem; }
-    .discount { color: #dc2626; font-size: .875rem; }
-    .stock { font-size: .875rem; }
-    .stock.low { color: #dc2626; }
-    .stock.ok { color: #16a34a; }
-    .btn-cart { display: inline-flex; align-items: center; gap: .375rem; margin-top: .5rem; padding: .375rem .75rem; background: #4f46e5; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: .8rem; font-weight: 600; }
-    .btn-cart:hover { background: #4338ca; }
-    .btn-cart-detail { width: 100%; margin-top: 1rem; padding: .625rem; font-size: .9rem; }
+    .card-body { padding: 0.75rem; }
+    .card-title { font-weight: 600; font-size: var(--font-size-sm, 0.875rem); margin: 0 0 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-price { color: var(--color-primary, #4f46e5); font-weight: 700; font-size: var(--font-size-base, 1rem); }
+    .card-meta { font-size: var(--font-size-xs, 0.75rem); color: var(--color-gray-500, #6b7280); margin-top: 0.25rem; }
+    .rating { color: var(--color-warning, #f59e0b); }
+    .state-loading {
+      display: flex; flex-direction: column; align-items: center;
+      gap: var(--space-3, 0.75rem); padding: 3rem; color: var(--color-gray-500, #6b7280);
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--color-gray-200, #e5e7eb);
+      border-top-color: var(--color-primary, #4f46e5);
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .state-error {
+      display: flex; flex-direction: column; align-items: center;
+      gap: var(--space-2, 0.5rem); padding: 3rem; color: var(--color-error, #dc2626);
+    }
+    .state-error-icon { font-size: 2rem; }
+    .detail-backdrop {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4);
+      z-index: 99; animation: fade-in 200ms ease;
+    }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    .detail-overlay {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 420px;
+      background: var(--color-surface, #fff);
+      box-shadow: var(--shadow-xl, -4px 0 24px rgba(0,0,0,.15));
+      z-index: 100; overflow-y: auto; padding: 1.5rem;
+      animation: slide-in-right 300ms ease;
+    }
+    @keyframes slide-in-right { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    @media (max-width: 480px) { .detail-overlay { width: 100%; } }
+    .detail-overlay img { width: 100%; border-radius: var(--radius-lg, 8px); margin-bottom: 0.75rem; }
+    .detail-overlay h2 { margin: 0 0 0.5rem; }
+    .detail-overlay .close-btn {
+      position: absolute; top: 1rem; right: 1rem;
+      background: var(--color-gray-100, #f3f4f6); border: none;
+      width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.2rem;
+      transition: background var(--transition-fast, 150ms ease);
+    }
+    .detail-overlay .close-btn:hover { background: var(--color-gray-200, #e5e7eb); }
+    .badge { display: inline-block; background: var(--color-primary-light, #e0e7ff); color: var(--color-primary-text, #4338ca); padding: 0.125rem 0.5rem; border-radius: var(--radius-xl, 12px); font-size: var(--font-size-xs, 0.75rem); }
+    .discount { color: var(--color-error, #dc2626); font-size: var(--font-size-sm, 0.875rem); }
+    .stock { font-size: var(--font-size-sm, 0.875rem); }
+    .stock.low { color: var(--color-error, #dc2626); }
+    .stock.ok { color: var(--color-success, #16a34a); }
+    .btn-cart {
+      display: inline-flex; align-items: center; gap: 0.375rem; margin-top: 0.5rem;
+      padding: 0.375rem 0.75rem; background: var(--color-primary, #4f46e5); color: #fff;
+      border: none; border-radius: var(--radius-md, 6px); cursor: pointer;
+      font-size: 0.8rem; font-weight: 600; font-family: inherit;
+      transition: background var(--transition-fast, 150ms ease);
+    }
+    .btn-cart:hover { background: var(--color-primary-hover, #4338ca); }
+    .btn-cart-detail { width: 100%; margin-top: 1rem; padding: 0.625rem; font-size: 0.9rem; }
   `],
   template: `
     <div class="toolbar">
@@ -53,9 +109,15 @@ import { CurrencyPipe } from '@angular/common';
     </div>
 
     @if (loading()) {
-      <div class="loading">Loading products...</div>
+      <div class="state-loading">
+        <div class="spinner"></div>
+        <span>Loading products...</span>
+      </div>
     } @else if (error()) {
-      <div class="error">{{ error() }}</div>
+      <div class="state-error">
+        <span class="state-error-icon">&#9888;</span>
+        <span>{{ error() }}</span>
+      </div>
     } @else {
       <div class="grid">
         @for (product of products(); track product.id) {
@@ -77,6 +139,7 @@ import { CurrencyPipe } from '@angular/common';
     }
 
     @if (selectedProduct(); as product) {
+      <div class="detail-backdrop" (click)="selectProduct(null)"></div>
       <div class="detail-overlay">
         <button class="close-btn" (click)="selectProduct(null)">&#10005;</button>
         <img [src]="product.thumbnail" [alt]="product.title" />
