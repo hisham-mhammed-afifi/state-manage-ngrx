@@ -12,12 +12,12 @@ State management libraries solve coordination problems. If no coordination probl
 
 Consider these scenarios:
 
-| Scenario | State Tool | Why |
-|----------|-----------|-----|
-| A toggle controlling a dropdown | Local `signal()` in the component | Lifetime matches the component. No sharing needed. |
-| A search query shared between a search bar and a results list in the same route | `signalState()` in a route-level service | Two components need the same reactive value, but no persistence or side effects are involved. |
-| Auth tokens consumed by an HTTP interceptor, a nav bar, and multiple routes | `signalStore()` with `providedIn: 'root'` | Multiple consumers across the application, async side effects (login HTTP call), derived state (`isAuthenticated`). |
-| A cart shared across independently deployed micro frontends | `signalStore()` + webpack singleton + events | The store must survive independently compiled bundles. Events decouple producers from consumers across remote boundaries. |
+| Scenario                                                                        | State Tool                                   | Why                                                                                                                       |
+| ------------------------------------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| A toggle controlling a dropdown                                                 | Local `signal()` in the component            | Lifetime matches the component. No sharing needed.                                                                        |
+| A search query shared between a search bar and a results list in the same route | `signalState()` in a route-level service     | Two components need the same reactive value, but no persistence or side effects are involved.                             |
+| Auth tokens consumed by an HTTP interceptor, a nav bar, and multiple routes     | `signalStore()` with `providedIn: 'root'`    | Multiple consumers across the application, async side effects (login HTTP call), derived state (`isAuthenticated`).       |
+| A cart shared across independently deployed micro frontends                     | `signalStore()` + webpack singleton + events | The store must survive independently compiled bundles. Events decouple producers from consumers across remote boundaries. |
 
 The cost of state management is indirection. Every store you create is a layer between the component that triggers a change and the component that renders it. That layer is justified when:
 
@@ -73,7 +73,7 @@ search(query: string): void {
 
 **Use when:** You need a structured reactive container for a component or service, but the full ceremony of a store (methods, computed, hooks) is unnecessary.
 
-*Verified from installed package type definitions: `signalState` is exported from `@ngrx/signals` and returns `DeepSignal<State> & WritableStateSource<State>`.*
+_Verified from installed package type definitions: `signalState` is exported from `@ngrx/signals` and returns `DeepSignal<State> & WritableStateSource<State>`._
 
 ### Level 2: `signalStore()`
 
@@ -87,16 +87,14 @@ export const ProductsStore = signalStore(
   withState({ products: [] as Product[], selectedId: null as number | null }),
   withCallState(),
   withComputed((store) => ({
-    selectedProduct: computed(() =>
-      store.products().find(p => p.id === store.selectedId())
-    ),
+    selectedProduct: computed(() => store.products().find((p) => p.id === store.selectedId())),
   })),
   withMethods((store) => {
     const http = inject(HttpClient);
     return {
       loadProducts: rxMethod<void>(/* ... */),
     };
-  })
+  }),
 );
 ```
 
@@ -104,7 +102,7 @@ export const ProductsStore = signalStore(
 
 **Use when:** State has a public API (methods), derived values (computed), side effects (rxMethod), or needs DI-scoped lifetime.
 
-*Verified from installed package type definitions: `signalStore` is exported from `@ngrx/signals` and accepts up to 15 features.*
+_Verified from installed package type definitions: `signalStore` is exported from `@ngrx/signals` and accepts up to 15 features._
 
 ### Level 3: `signalStore()` + Events
 
@@ -126,16 +124,16 @@ Events decouple producers from consumers. A component dispatches `cartEvents.add
 
 **Use when:** Multiple stores or remotes need to react to the same action, or you want to decouple "what happened" from "what should change."
 
-*Verified from installed package type definitions: `eventGroup` and `type` are exported from `@ngrx/signals/events` and `@ngrx/signals` respectively.*
+_Verified from installed package type definitions: `eventGroup` and `type` are exported from `@ngrx/signals/events` and `@ngrx/signals` respectively._
 
 ### Spectrum Summary
 
-| Level | Primitive | DI Service? | Computed | Methods | Side Effects | Events | Use When |
-|-------|-----------|-------------|----------|---------|--------------|--------|----------|
-| 0 | `signal()` | No | `computed()` | Component methods | Manual | No | Single component |
-| 1 | `signalState()` | No | Manual `computed()` | Manual | Manual | No | Structured local state |
-| 2 | `signalStore()` | Yes | `withComputed` | `withMethods` | `rxMethod` | No | Shared service state |
-| 3 | `signalStore()` + events | Yes | `withComputed` | `withMethods` | `withEventHandlers` | Yes | Cross-domain decoupling |
+| Level | Primitive                | DI Service? | Computed            | Methods           | Side Effects        | Events | Use When                |
+| ----- | ------------------------ | ----------- | ------------------- | ----------------- | ------------------- | ------ | ----------------------- |
+| 0     | `signal()`               | No          | `computed()`        | Component methods | Manual              | No     | Single component        |
+| 1     | `signalState()`          | No          | Manual `computed()` | Manual            | Manual              | No     | Structured local state  |
+| 2     | `signalStore()`          | Yes         | `withComputed`      | `withMethods`     | `rxMethod`          | No     | Shared service state    |
+| 3     | `signalStore()` + events | Yes         | `withComputed`      | `withMethods`     | `withEventHandlers` | Yes    | Cross-domain decoupling |
 
 Sources: [NgRx Signal Store Official Docs](https://ngrx.io/guide/signals/signal-store), [Benefits of using NgRx Signal State/Store over Signals](https://medium.com/multitude-it-labs/ngrx-signal-store-vs-signal-state-vs-simple-signal-33ceb2f5ee1d)
 
@@ -145,15 +143,15 @@ Sources: [NgRx Signal Store Official Docs](https://ngrx.io/guide/signals/signal-
 
 If you have experience with classic NgRx (`@ngrx/store`), this table maps the old concepts to their Signal Store equivalents.
 
-| Classic NgRx | Signal Store | Notes |
-|--------------|-------------|-------|
-| `createAction()` | `withMethods` (or `eventGroup` for decoupled events) | Methods are the default. Use events only when decoupling is needed. |
-| `createReducer()` | `patchState()` / `updateState()` inside methods | `updateState()` from ngrx-toolkit adds DevTools action labels. |
-| `createSelector()` | `withComputed()` | Returns Angular `computed()` signals instead of memoized selectors. |
-| `createEffect()` | `rxMethod()` / `withEventHandlers()` | `rxMethod` for direct RxJS pipelines, `withEventHandlers` for event-driven reactions. |
-| `StoreModule.forRoot()` | `signalStore({ providedIn: 'root' })` | No module registration needed. |
-| `StoreModule.forFeature()` | Route-level `providers: [FeatureStore]` | Scoped to the route's injector. |
-| Feature state slice | Individual `signalStore()` | One store per bounded context, not one global store with slices. |
+| Classic NgRx               | Signal Store                                         | Notes                                                                                 |
+| -------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `createAction()`           | `withMethods` (or `eventGroup` for decoupled events) | Methods are the default. Use events only when decoupling is needed.                   |
+| `createReducer()`          | `patchState()` / `updateState()` inside methods      | `updateState()` from ngrx-toolkit adds DevTools action labels.                        |
+| `createSelector()`         | `withComputed()`                                     | Returns Angular `computed()` signals instead of memoized selectors.                   |
+| `createEffect()`           | `rxMethod()` / `withEventHandlers()`                 | `rxMethod` for direct RxJS pipelines, `withEventHandlers` for event-driven reactions. |
+| `StoreModule.forRoot()`    | `signalStore({ providedIn: 'root' })`                | No module registration needed.                                                        |
+| `StoreModule.forFeature()` | Route-level `providers: [FeatureStore]`              | Scoped to the route's injector.                                                       |
+| Feature state slice        | Individual `signalStore()`                           | One store per bounded context, not one global store with slices.                      |
 
 The fundamental shift: classic NgRx is a single global store with feature slices. Signal Store is many independent stores, each an Angular service. This maps naturally to Domain-Driven Design where each bounded context owns its state.
 
@@ -185,11 +183,11 @@ Each bounded context gets its own store. Stores do not share internal state stru
 
 Not all contexts are equal:
 
-| Domain Type | Example | Shared? | Deployment | Store Location |
-|-------------|---------|---------|-----------|----------------|
-| Core | Auth, User, App Flags | Yes, via MF singleton | Shell | `libs/state/core` |
-| Feature | Products, Orders | No, isolated per remote | Per remote | `libs/feature/*/state` |
-| Feature (shared) | Cart | Yes, via MF singleton + events | Shell (shared) | `libs/feature/cart/state` |
+| Domain Type      | Example               | Shared?                        | Deployment     | Store Location            |
+| ---------------- | --------------------- | ------------------------------ | -------------- | ------------------------- |
+| Core             | Auth, User, App Flags | Yes, via MF singleton          | Shell          | `libs/state/core`         |
+| Feature          | Products, Orders      | No, isolated per remote        | Per remote     | `libs/feature/*/state`    |
+| Feature (shared) | Cart                  | Yes, via MF singleton + events | Shell (shared) | `libs/feature/cart/state` |
 
 Core domain state lives in the shell and is shared at runtime through webpack's singleton mechanism. Feature domain state is scoped to the remote that owns it and is never shared.
 
@@ -226,18 +224,7 @@ Webpack Module Federation's `shared` configuration solves this by deduplicating 
 
 ```typescript
 // tools/mf-shared.ts
-export const SHARED_SINGLETONS = [
-  '@angular/core',
-  '@angular/common',
-  '@angular/common/http',
-  '@angular/router',
-  '@angular/forms',
-  '@angular/platform-browser',
-  '@ngrx/signals',
-  '@angular-architects/ngrx-toolkit',
-  '@org/state-core',
-  'rxjs',
-] as const;
+export const SHARED_SINGLETONS = ['@angular/core', '@angular/common', '@angular/common/http', '@angular/router', '@angular/forms', '@angular/platform-browser', '@ngrx/signals', '@angular-architects/ngrx-toolkit', '@org/state-core', 'rxjs'] as const;
 ```
 
 When `@angular/core` is marked as `singleton: true`, all remotes use the shell's copy of Angular. This means one root injector, one `AuthStore` instance, one set of signals.
@@ -260,33 +247,27 @@ Sources: [Micro Frontend Architecture | Nx](https://nx.dev/more-concepts/micro-f
 
 Use this flowchart when deciding how to manage a piece of state:
 
-```
-Is this state used by a single component?
-├── Yes -> signal() in the component
-└── No
-    ├── Is it shared within a single route/feature?
-    │   ├── Yes, and it's simple (no methods, no side effects)
-    │   │   └── signalState() in a route-scoped service
-    │   └── Yes, but it has methods, computed, or side effects
-    │       └── signalStore() provided at route level
-    └── Is it shared across multiple features or remotes?
-        ├── Is it core domain (auth, user, app flags)?
-        │   └── signalStore() in libs/state/core, providedIn: 'root'
-        │       + webpack singleton sharing
-        └── Is it feature domain crossing remote boundaries?
-            └── signalStore() + eventGroup for cross-remote communication
-                + webpack singleton sharing for the events library
+```mermaid
+flowchart TD
+    A{"Is this state used by\na single component?"} -->|Yes| B["signal() in the component"]
+    A -->|No| C{"Is it shared within\na single route/feature?"}
+    C -->|"Yes, simple\n(no methods, no side effects)"| D["signalState()\nin a route-scoped service"]
+    C -->|"Yes, but has methods,\ncomputed, or side effects"| E["signalStore()\nprovided at route level"]
+    C -->|No| F{"Is it shared across multiple\nfeatures or remotes?"}
+    F -->|"Core domain\n(auth, user, app flags)"| G["signalStore() in libs/state/core\nprovidedIn: 'root'\n+ webpack singleton sharing"]
+    F -->|"Feature domain crossing\nremote boundaries"| H["signalStore()\n+ eventGroup for cross-remote communication\n+ webpack singleton sharing for the events library"]
+
 ```
 
 ### Quick Reference Table
 
-| Question | Answer | Tool |
-|----------|--------|------|
-| One component uses it | Yes | `signal()` |
-| Structured local state, no methods | Yes | `signalState()` |
-| Needs methods, computed, or DI | Yes | `signalStore()` |
-| Shared across the app or MF remotes | Yes | `signalStore()` + singleton config |
-| Cross-remote decoupling needed | Yes | `signalStore()` + `eventGroup` |
+| Question                            | Answer | Tool                               |
+| ----------------------------------- | ------ | ---------------------------------- |
+| One component uses it               | Yes    | `signal()`                         |
+| Structured local state, no methods  | Yes    | `signalState()`                    |
+| Needs methods, computed, or DI      | Yes    | `signalStore()`                    |
+| Shared across the app or MF remotes | Yes    | `signalStore()` + singleton config |
+| Cross-remote decoupling needed      | Yes    | `signalStore()` + `eventGroup`     |
 
 ---
 

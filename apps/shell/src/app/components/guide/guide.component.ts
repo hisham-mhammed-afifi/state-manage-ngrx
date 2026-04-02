@@ -74,7 +74,7 @@ const CHAPTERS: Chapter[] = [
       </ul>
     </aside>
     <main>
-      <markdown [src]="markdownSrc()" />
+      <markdown [src]="markdownSrc()" mermaid />
     </main>
   `,
 })
